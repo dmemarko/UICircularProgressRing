@@ -16,6 +16,7 @@ public struct TimerRing<Label: View> {
     private let inverseCountdown: Bool
     private let axis: RingAxis
     private let clockwise: Bool
+    private let repeats: Bool
     private let outerRingStyle: RingStyle
     private let innerRingStyle: RingStyle
     private let onTick: ((TimeInterval) -> Void)?
@@ -34,9 +35,10 @@ public struct TimerRing<Label: View> {
     ///   - delay: A delay before the ring begins animating. Default = `nil`.
     ///   - elapsedTime: The amount of time already elapsed. The total running time is determined by `time - elapsedTime`. Default = `nil`.
     ///   - tickRate: The rate at which the ring updates its time value. Default = `TimerRingTimeUnit.milliseconds(100)`.
-    ///   - inverseCountdown: If set to true the ring will act as a countdown timer. Default = false
+    ///   - inverseCountdown: If set to true the ring will act as a countdown timer. Default = false.
     ///   - axis: The `RingAxis` at which drawing begins.
     ///   - clockwise: Whether to draw in a clockwise manner.
+    ///   - repeats: If set to true timer restarts when reaches min/max value and `isDone` never becomes true. Default = false.
     ///   - outerRingStyle: The `RingStyle` of the outer ring.
     ///   - innerRingStyle: The `RingStyle` of the outer ring.
     ///   - isPaused: A `Binding` used to determine if the timer is paused. Default = `Binding.constant(false)`.
@@ -54,6 +56,7 @@ public struct TimerRing<Label: View> {
         inverseCountdown: Bool = false,
         axis: RingAxis = .top,
         clockwise: Bool = true,
+        repeats: Bool = false,
         outerRingStyle: RingStyle = .init(color: .color(.gray), strokeStyle: .init(lineWidth: 32), padding: 0),
         innerRingStyle: RingStyle = .init(color: .color(.blue), strokeStyle: .init(lineWidth: 16), padding: 8),
         isPaused: Binding<Bool> = .constant(false),
@@ -62,7 +65,8 @@ public struct TimerRing<Label: View> {
         onTick: ((TimeInterval) -> Void)? = nil,
         @ViewBuilder _ label: @escaping (TimeInterval) -> Label
     ) {
-        let initialValue = inverseCountdown ? time.timeInterval : elapsedTime?.timeInterval ?? 0
+        let elapsed = elapsedTime?.timeInterval ?? 0
+        let initialValue = inverseCountdown ? (time.timeInterval - elapsed) : elapsed
             
         _ticks = State(initialValue: initialValue)
         self.timeInterval = time.timeInterval
@@ -70,6 +74,7 @@ public struct TimerRing<Label: View> {
         self.inverseCountdown = inverseCountdown
         self.axis = axis
         self.clockwise = clockwise
+        self.repeats = repeats
         self.outerRingStyle = outerRingStyle
         self.innerRingStyle = innerRingStyle
         _isDone = isDone
@@ -126,6 +131,7 @@ extension TimerRing where Label == EmptyView {
         inverseCountdown: Bool = false,
         axis: RingAxis = .top,
         clockwise: Bool = true,
+        repeats: Bool = false,
         outerRingStyle: RingStyle = .init(color: .color(.gray), strokeStyle: .init(lineWidth: 32), padding: 0),
         innerRingStyle: RingStyle = .init(color: .color(.blue), strokeStyle: .init(lineWidth: 16), padding: 8),
         isPaused: Binding<Bool> = .constant(false),
@@ -141,6 +147,7 @@ extension TimerRing where Label == EmptyView {
             inverseCountdown: inverseCountdown,
             axis: axis,
             clockwise: clockwise,
+            repeats: repeats,
             outerRingStyle: outerRingStyle,
             innerRingStyle: innerRingStyle,
             isPaused: isPaused,
@@ -185,14 +192,22 @@ extension TimerRing: View {
             
             if self.inverseCountdown {
                 guard self.ticks > 0 else {
-                    self.isDone = true
+                    if repeats {
+                        self.ticks = self.timeInterval
+                    } else {
+                        self.isDone = true
+                    }
                     return
                 }
                 
                 ticks = max(self.ticks - self.tickRate, 0)
             } else {
                 guard self.ticks < self.timeInterval else {
-                    self.isDone = true
+                    if repeats {
+                        self.ticks = 0
+                    } else {
+                        self.isDone = true
+                    }
                     return
                 }
                 
