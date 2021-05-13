@@ -21,8 +21,9 @@ Pod::Spec.new do |spec|
 
   # ――― Platform Specifics ――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
 
-  spec.ios.deployment_target = "8.0"
-  spec.tvos.deployment_target = "10.0"
+  spec.ios.deployment_target = "13.0"
+  spec.tvos.deployment_target = "13.0"
+  spec.watchos.deployment_target = "6.0"
 
   # ――― Source Location ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
 
