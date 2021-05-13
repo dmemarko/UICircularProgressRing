@@ -12,6 +12,6 @@ Pod::Spec.new do |spec|
   spec.tvos.deployment_target = "13.0"
   spec.watchos.deployment_target = "6.0"
   spec.source       = { :git => "https://github.com/luispadron/UICircularProgressRing.git", :tag => "v#{spec.version}" }
-  spec.source_files  = "Legacy", "Legacy/**/*.{h,m,swift}"
+  spec.source_files  = "Sources", "Sources/**/*.{h,m,swift}"
   spec.swift_version = '5.3'
 end
